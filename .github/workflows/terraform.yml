@@ -46,7 +46,11 @@ jobs:
       # On push to "main", build or change infrastructure according to Terraform configuration files
       # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud".
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve -input=false
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "$GCP_SA_KEY" > /tmp/credentials.json
+        export GOOGLE_APPLICATION_CREDENTIALS="/tmp/credentials.json"
+        terraform apply -auto-approve -input=false
+      env:
+        GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+    
