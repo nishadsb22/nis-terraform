@@ -1,55 +1,32 @@
-name: 'Terraform'
+name: Terraform
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
-
-permissions:
-  contents: read
 
 jobs:
   terraform:
-    name: 'Terraform'
     runs-on: ubuntu-latest
-    environment: production
-
-    # Use the Bash shell regardless of the GitHub Actions runner type
-    defaults:
-      run:
-        shell: bash
-
     steps:
-      # Checkout the repository to the GitHub Actions runner
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
       - name: Terraform Init
         run: terraform init
 
-      # Checks that all Terraform configuration files adhere to a canonical format
       - name: Terraform Format
         run: terraform fmt -check
 
-      # Generates an execution plan for Terraform
       - name: Terraform Plan
-        run: terraform plan -input=false
+        run: terraform plan
 
-      # On push to "main", build or change infrastructure according to Terraform configuration files
-      # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud".
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
-        run: |
-          echo "$GCP_SA_KEY" > /tmp/credentials.json
-          export GOOGLE_APPLICATION_CREDENTIALS="/tmp/credentials.json"
-          terraform apply -auto-approve -input=false
+        run: terraform apply -auto-approve
         env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
